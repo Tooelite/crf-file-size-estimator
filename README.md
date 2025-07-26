@@ -1,4 +1,4 @@
-# 🎥 CRF File Size Estimator
+# 🎥 CRF File Size Estimator 1.0
 
 A simple web-based tool to help estimate the final file size of an H.264 or H.265 encode based on CRF value, preset, resolution, and optional audio configuration.
 
