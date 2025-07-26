@@ -1,4 +1,4 @@
-# 🎥 CRF File Size Estimator 1.1
+# 🎥 CRF File Size Estimator
 
 A simple web-based tool to help estimate the final file size of an H.264 or H.265 encode based on CRF value, preset, resolution, and optional audio configuration.
 
@@ -29,6 +29,17 @@ Perfect for users of **HandBrake**, **FFmpeg**, or anyone working with `x264` or
 
 ---
 
+## 📊 New in Version 1.2
+
+- **CRF impact chart**: Visualizes how file size changes across CRF values (16–30)
+  - Uses the same estimation algorithm from the form
+  - Helps users visually identify the best CRF for their target size
+  - Updates live with your current configuration (codec, resolution, runtime, audio)
+- 📈 Auto-displayed after each estimate
+- 🧠 Especially helpful for learning how CRF compression behaves across encoders
+
+---
+
 ## 🖼️ Screenshot
 
 ![Preview](preview.png)
@@ -37,6 +48,7 @@ Perfect for users of **HandBrake**, **FFmpeg**, or anyone working with `x264` or
 
 ## 🚀 Getting Started
 
-Download the HTML-file from the repository or simply open the HTML file in your browser using this link:
+Download the HTML file from the repository or simply open it in your browser using this link:
 
-👉 [Open CRF File Size Estimator](https://tooelite.github.io/crf-file-size-estimator/crf_file_size_estimator_v1.1.html)
+👉 [Open CRF File Size Estimator](https://tooelite.github.io/crf-file-size-estimator/crf_file_size_estimator_v1.2.html)
+
