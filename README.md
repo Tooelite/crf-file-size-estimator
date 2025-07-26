@@ -4,6 +4,10 @@ A simple web-based tool to help estimate the final file size of an H.264 or H.26
 
 Perfect for users of **HandBrake**, **FFmpeg**, or anyone working with `x264` or `x265` encoders.
 
+> ⚠️ **Note:**  
+> All estimation results are **preliminary**.  
+> This JavaScript tool is a **conceptual prototype** and has **not yet been fully validated**.
+
 ---
 
 ## 🔧 Features of initial release 1.0
