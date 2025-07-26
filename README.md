@@ -20,6 +20,15 @@ Perfect for users of **HandBrake**, **FFmpeg**, or anyone working with `x264` or
 
 ---
 
+## ✨ New in Version 1.1
+
+- 📂 **Drag & Drop support** for video files  
+  → Automatically fills in the source file size based on the dropped file
+- 🔁 **Improved Reset behavior**  
+  → Drag & Drop area now resets to its initial state
+
+---
+
 ## 🖼️ Screenshot
 
 ![Preview](preview.png)
@@ -30,4 +39,4 @@ Perfect for users of **HandBrake**, **FFmpeg**, or anyone working with `x264` or
 
 Download the HTML-file from the repository or simply open the HTML file in your browser using this link:
 
-👉 [Open CRF File Size Estimator](https://tooelite.github.io/crf-file-size-estimator/crf_file_size_estimator_v1.0.html)
+👉 [Open CRF File Size Estimator](https://tooelite.github.io/crf-file-size-estimator/crf_file_size_estimator_v1.1.html)
