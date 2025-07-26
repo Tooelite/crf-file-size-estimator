@@ -22,7 +22,7 @@ Perfect for users of **HandBrake**, **FFmpeg**, or anyone working with `x264` or
 
 ## 🖼️ Screenshot
 
-*(Consider adding a screenshot here)*
+![Preview](preview.png)
 
 ---
 
