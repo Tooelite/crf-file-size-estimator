@@ -30,6 +30,4 @@ Perfect for users of **HandBrake**, **FFmpeg**, or anyone working with `x264` or
 
 Simply open the HTML file in your browser:
 
-```bash
-# Open locally
-open crf_file_size_estimator_v1.0.html
+👉 [Open CRF File Size Estimator](https://tooelite.github.io/crf-file-size-estimator/crf_file_size_estimator_v1.0.html)
