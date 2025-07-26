@@ -28,6 +28,6 @@ Perfect for users of **HandBrake**, **FFmpeg**, or anyone working with `x264` or
 
 ## 🚀 Getting Started
 
-Simply open the HTML file in your browser:
+Download the HTML-file from the repository or simply open the HTML file in your browser using this link:
 
 👉 [Open CRF File Size Estimator](https://tooelite.github.io/crf-file-size-estimator/crf_file_size_estimator_v1.0.html)
