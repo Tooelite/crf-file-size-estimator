@@ -249,19 +249,71 @@
       }
     }
 
-    const translations = {
-      en: { title: "🎥 CRF File Size Estimator v1.2", subtitle: "With dynamic audio size estimation (Stereo/Surround + duration)" },
-      de: { title: "🎥 CRF-Dateigrößenschätzer v1.2", subtitle: "Mit dynamischer Audioberechnung (Stereo/Surround + Laufzeit)" }
-    };
+    // Übersetzungen folgen...
+
+const translations = {
+  en: {
+    title: "🎥 CRF File Size Estimator v1.2",
+    subtitle: "With dynamic audio size estimation (Stereo/Surround + duration)",
+    sourceSize: "Size of source file (in GB):",
+    codec: "Codec:",
+    resolution: "Resolution:",
+    preset: "Preset:",
+    crf: "CRF value:",
+    includeAudio: "🎵 Include audio stream?",
+    audioConfig: "Audio configuration:",
+    runtimeMin: "Duration (in minutes):",
+    estimate: "Estimate target size",
+    outputLabel: "Estimated target file size:",
+    dropText: "Drop video file here to auto-fill file size"
+  },
+  de: {
+    title: "🎥 CRF-Dateigrößenschätzer v1.2",
+    subtitle: "Mit dynamischer Audioberechnung (Stereo/Surround + Laufzeit)",
+    sourceSize: "Größe der Quelldatei (in GB):",
+    codec: "Codec:",
+    resolution: "Auflösung:",
+    preset: "Preset:",
+    crf: "CRF-Wert:",
+    includeAudio: "🎵 Audiostream einrechnen?",
+    audioConfig: "Audiokonfiguration:",
+    runtimeMin: "Laufzeit (in Minuten):",
+    estimate: "Zielgröße schätzen",
+    outputLabel: "Geschätzte Zieldateigröße:",
+    dropText: "Videodatei hierher ziehen zum automatischen Auslesen der Dateigröße"
+  }
+};
+
 
     let currentLang = "en";
-    function setLanguage(lang) {
-      currentLang = lang;
-      document.getElementById("output").style.display = "none";
-      document.getElementById("chartContainer").style.display = "none";
-    }
+    // Neue Sprachumschaltung
 
-    window.addEventListener("DOMContentLoaded", () => {
+function setLanguage(lang) {
+  currentLang = lang;
+  const t = translations[lang];
+  $("title").innerText = t.title;
+  $("subtitle").innerText = t.subtitle;
+  $("labelSourceSize").innerText = t.sourceSize;
+  $("labelCodec").innerText = t.codec;
+  $("labelResolution").innerText = t.resolution;
+  $("labelPreset").innerText = t.preset;
+  $("labelCRF").innerText = t.crf;
+  $("includeAudioLabelText").innerText = " " + t.includeAudio;
+  $("labelAudioConfig").innerText = t.audioConfig;
+  $("labelRuntimeMin").innerText = t.runtimeMin;
+  $("estimateBtn").innerText = t.estimate;
+  $("dropZone").innerText = t.dropText;
+  $("dropZone").style.borderColor = "#888";
+  $("output").style.display = "none";
+  $("chartContainer").style.display = "none";
+  $("output").innerHTML = "";
+  toggleAudio();
+}
+
+
+    const $ = id => document.getElementById(id);
+
+window.addEventListener("DOMContentLoaded", () => {
       document.getElementById("includeAudio").addEventListener("change", toggleAudio);
       document.getElementById("languageSwitcher").addEventListener("change", e => setLanguage(e.target.value));
       document.getElementById("estimateBtn").addEventListener("click", estimateSize);
