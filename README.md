@@ -6,7 +6,7 @@ Perfect for users of **HandBrake**, **FFmpeg**, or anyone working with `x264` or
 
 > ⚠️ **Note:**  
 > All estimation results are **preliminary**.  
-> This JavaScript tool is a **conceptual prototype** and has **not yet been fully validated**.
+> This JavaScript tool is a **conceptual prototype** and has **not yet been fully validated** yet.
 
 ---
 
