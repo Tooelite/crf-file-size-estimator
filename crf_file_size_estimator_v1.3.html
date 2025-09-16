@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CRF File Size Estimator v1.3</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root { color-scheme: dark; }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background-color: #1e1e1e;
+      color: #e0e0e0;
+      padding: 2em;
+      max-width: 720px;
+      margin: auto;
+    }
+    label { display: block; margin-top: 1.2em; }
+    input, select {
+      width: 100%; padding: 0.6em; margin-top: 0.3em; background: #2e2e2e;
+      border: 1px solid #444; color: #fff; border-radius: 6px;
+    }
+    .row { display:flex; gap:1em; }
+    .row > * { flex:1; }
+    button { margin-top: 1.5em; padding: 0.8em; width: 100%; background: #4caf50; border: none; color: white; font-weight: 600; font-size: 1em; border-radius: 8px; cursor: pointer; }
+    button:hover { background: #45a049; }
+    #output { margin-top: 2em; padding: 1em; background-color: #2a2a2a; border-radius: 8px; border: 1px solid #444; }
+    .subsection { margin-top: 0.5em; padding-left: 1.5em; display: none; }
+    .lang-switch { text-align: right; margin-bottom: 1em; }
+    .lang-switch select { background:#2e2e2e; color:white; border:1px solid #555; border-radius:6px; padding:0.3em; width: auto; }
+    .hint { color:#ccc; font-size: .9em; margin-top: .25em; }
+    .warn { color:#ffcc80; }
+    .ok { color:#a5d6a7; }
+    a { color: #a0cfff; }
+  </style>
+</head>
+<body>
+  <div class="lang-switch">
+    <label for="languageSwitcher" style="margin-right: 0.5em;">🌐 Language / Sprache:</label>
+    <select id="languageSwitcher">
+      <option value="en" selected>English 🇬🇧</option>
+      <option value="de">Deutsch 🇩🇪</option>
+    </select>
+  </div>
+
+  <h1 id="title">🎥 CRF File Size Estimator v1.3</h1>
+  <p id="subtitle">Now supports optional <strong>source video bitrate</strong> for more accurate estimates</p>
+
+  <label id="labelDropzone">📂 Drag & Drop source file (optional):</label>
+  <div id="dropZone" style="border: 2px dashed #888; padding: 1em; text-align: center; margin-bottom: 1em; border-radius: 8px;">Drop video file here to auto-fill file size</div>
+
+  <div class="row">
+    <div>
+      <label id="labelSourceSize" for="sourceSize">Size of source file (in GB):</label>
+      <input type="number" id="sourceSize" min="0.1" step="0.01" placeholder="e.g. 20.0" />
+      <div class="hint" id="hintSourceSize">Optional if video bitrate is provided.</div>
+    </div>
+    <div>
+      <label id="labelSourceBitrate" for="sourceVideoBitrate">Source <em>video</em> bitrate (kbit/s, optional):</label>
+      <input type="number" id="sourceVideoBitrate" min="1" step="1" placeholder="e.g. 28000" />
+      <div class="hint" id="hintSourceBitrate">Assumed to be <em>video-only</em> bitrate.</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div>
+      <label id="labelRuntimeMin" for="runtimeMin">Duration (in minutes):</label>
+      <input type="number" id="runtimeMin" min="1" step="1" value="90" />
+    </div>
+    <div>
+      <label id="labelCodec" for="codec">Codec:</label>
+      <select id="codec">
+        <option value="x264">x264 (H.264)</option>
+        <option value="x265" selected>x265 (H.265)</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="row">
+    <div>
+      <label id="labelResolution" for="resolution">Resolution:</label>
+      <select id="resolution">
+        <option value="1080p" selected>1080p (Blu-ray)</option>
+        <option value="576p">576p (DVD)</option>
+      </select>
+    </div>
+    <div>
+      <label id="labelPreset" for="preset">Preset:</label>
+      <select id="preset">
+        <option value="slow" selected>slow (recommended)</option>
+      </select>
+    </div>
+  </div>
+
+  <label id="labelCRF" for="crf">CRF value:</label>
+  <input type="number" id="crf" min="16" max="30" value="23" />
+
+  <label id="labelIncludeAudio">
+    <input type="checkbox" id="includeAudio" checked />
+    <span id="includeAudioLabelText"> 🎵 Include audio stream?</span>
+  </label>
+
+  <div class="subsection" id="audioSection">
+    <div class="row">
+      <div>
+        <label id="labelAudioConfig" for="audioConfig">Audio configuration:</label>
+        <select id="audioConfig">
+          <option value="stereo">Stereo (2.0 / 320 kbit/s)</option>
+          <option value="surround" selected>5.1 Surround (384 kbit/s)</option>
+        </select>
+      </div>
+      <div>
+        <label id="labelAudioNote">Note:</label>
+        <div class="hint" id="audioNoteText">Audio bitrate is used to estimate audio size. You can still enter a source <em>video</em> bitrate above.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <button id="estimateBtn">Estimate target size</button>
+    <button id="resetBtn" style="background:#9e1c1c;">Reset form</button>
+  </div>
+
+  <div id="output" style="display:none;"></div>
+  <div id="chartContainer" style="display:none; margin-top:2em;">
+    <canvas id="crfChart" width="400" height="220"></canvas>
+  </div>
+
+  <footer style="text-align:center; margin-top:2em; font-size:0.9em; color:#aaa;">
+    🔗 <a href="https://github.com/Tooelite/crf-file-size-estimator" target="_blank" style="color:#aaa; text-decoration:none;">View on GitHub</a>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    function toggleAudio() {
+      const audioSection = $("audioSection");
+      audioSection.style.display = $("includeAudio").checked ? "block" : "none";
+    }
+
+    function kibitToMBPerSeconds(kbps, seconds) {
+      // 1 MB = 8192 kbit; size(MB) = (kbps * seconds) / 8192
+      return (kbps * seconds) / 8192;
+    }
+
+    function estimateSize() {
+      const sourceSizeGB_in = parseFloat($("sourceSize").value);
+      const sourceVideoBitrate = parseFloat($("sourceVideoBitrate").value); // kbit/s
+      const codec = $("codec").value;
+      const resolution = $("resolution").value;
+      const crf = parseFloat($("crf").value);
+      const includeAudio = $("includeAudio").checked;
+      const audioConfig = $("audioConfig").value;
+      const runtimeMin = parseFloat($("runtimeMin").value);
+
+      const out = $("output");
+
+      // Basic validation
+      if ((!sourceSizeGB_in || sourceSizeGB_in <= 0) && (!sourceVideoBitrate || sourceVideoBitrate <= 0)) {
+        out.style.display = "block";
+        out.innerHTML = "❗ Please enter either a valid source file size or a source <em>video</em> bitrate.";
+        return;
+      }
+      if ((!runtimeMin || runtimeMin <= 0) && sourceVideoBitrate) {
+        out.style.display = "block";
+        out.innerHTML = "❗ Please enter a valid duration (minutes) to use the source bitrate.";
+        return;
+      }
+
+      // --- Audio size estimate ---
+      let audioBitrate = 0;
+      if (includeAudio) {
+        audioBitrate = audioConfig === "surround" ? 384 : 320; // kbit/s
+      }
+      const seconds = (runtimeMin && runtimeMin > 0) ? runtimeMin * 60 : 0;
+      const audioSizeMB = includeAudio ? kibitToMBPerSeconds(audioBitrate, seconds) : 0;
+      const audioSizeGB = audioSizeMB / 1024;
+
+      // --- Determine video-only size of the source ---
+      let videoOnlyGB_fromSize = null;
+      if (sourceSizeGB_in && sourceSizeGB_in > 0) {
+        // If audio is included, subtract estimated audio size
+        videoOnlyGB_fromSize = Math.max(0, sourceSizeGB_in - (includeAudio ? audioSizeGB : 0));
+      }
+
+      let videoOnlyGB_fromBitrate = null;
+      if (sourceVideoBitrate && sourceVideoBitrate > 0 && seconds > 0) {
+        const videoMB = kibitToMBPerSeconds(sourceVideoBitrate, seconds);
+        videoOnlyGB_fromBitrate = videoMB / 1024;
+      }
+
+      // Choose the best available estimate for source video size
+      let videoOnlyGB = null;
+      let methodNote = "";
+      if (videoOnlyGB_fromBitrate !== null && !Number.isNaN(videoOnlyGB_fromBitrate)) {
+        videoOnlyGB = videoOnlyGB_fromBitrate;
+        methodNote = "bitrate";
+      } else if (videoOnlyGB_fromSize !== null && !Number.isNaN(videoOnlyGB_fromSize)) {
+        videoOnlyGB = videoOnlyGB_fromSize;
+        methodNote = "filesize";
+      }
+
+      if (videoOnlyGB === null) {
+        out.style.display = "block";
+        out.innerHTML = "❗ Unable to determine video size. Provide either source file size or source video bitrate.";
+        return;
+      }
+
+      // Consistency check when both are present
+      let consistencyMsg = "";
+      if (videoOnlyGB_fromBitrate !== null && videoOnlyGB_fromSize !== null) {
+        const a = videoOnlyGB_fromBitrate;
+        const b = videoOnlyGB_fromSize;
+        const diff = Math.abs(a - b);
+        const rel = b > 0 ? (diff / b) : 0;
+        if (rel > 0.10) {
+          consistencyMsg = `⚠️ Source checks disagree by ${(rel*100).toFixed(1)}%. Using <strong>${methodNote === 'bitrate' ? 'bitrate-based' : 'filesize-based'}</strong> estimate.`;
+        } else {
+          methodNote = methodNote + ", cross-validated";
+        }
+      }
+
+      // --- Compression model (same as before) ---
+      let baseCompression = 0.25; // conservative default
+      if (codec === "x265") {
+        baseCompression = (resolution === "1080p") ? 0.12 : 0.25;
+      }
+      const referenceCRF = 23;
+      const crfAdjustment = Math.pow(0.93, (crf - referenceCRF));
+      const compressionFactor = baseCompression * crfAdjustment;
+
+      const estimatedVideoGB = videoOnlyGB * compressionFactor;
+      const estimatedTotalGB = estimatedVideoGB + (includeAudio ? audioSizeGB : 0);
+      const estimatedTotalMB = estimatedTotalGB * 1024;
+
+      out.style.display = "block";
+      out.innerHTML = `
+        📦 <strong id="outLabel">Estimated target file size:</strong><br><br>
+        <span style="font-size:1.35em;">${estimatedTotalMB.toFixed(1)} MB</span>
+        (<strong>${estimatedTotalGB.toFixed(2)} GB</strong>)<br><br>
+        🎚️ CRF: <strong>${crf}</strong><br>
+        🎞️ Resolution: <strong>${resolution}</strong><br>
+        🎛️ Preset: <strong>slow</strong><br>
+        🎥 Codec: <strong>${codec.toUpperCase()}</strong><br>
+        🧮 Source video size used: <strong>${videoOnlyGB.toFixed(2)} GB</strong> (${methodNote})<br>
+        ${includeAudio ? `🎵 Audio est.: <strong>${audioConfig} / ${runtimeMin} min ≈ ${audioSizeMB.toFixed(1)} MB</strong><br>` : ""}
+        ${consistencyMsg ? `<div class="hint warn" style="margin-top:.5em;">${consistencyMsg}</div>` : ""}
+      `;
+
+      // --- CRF chart ---
+      const crfValues = [];
+      const sizeEstimates = [];
+      for (let c = 16; c <= 30; c++) {
+        const adj = Math.pow(0.93, c - referenceCRF);
+        const factor = baseCompression * adj;
+        const videoGB_at_c = videoOnlyGB * factor;
+        const totalGB_at_c = videoGB_at_c + (includeAudio ? audioSizeGB : 0);
+        sizeEstimates.push((totalGB_at_c * 1024).toFixed(1)); // MB
+        crfValues.push(c);
+      }
+
+      const ctx = $("crfChart").getContext("2d");
+      $("chartContainer").style.display = "block";
+      if (window.crfChart && window.crfChart.data) {
+        window.crfChart.data.labels = crfValues;
+        window.crfChart.data.datasets[0].data = sizeEstimates;
+        window.crfChart.update();
+      } else {
+        window.crfChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: crfValues,
+            datasets: [{
+              label: 'Estimated Size (MB)',
+              data: sizeEstimates,
+              borderColor: '#4caf50',
+              borderWidth: 2,
+              fill: false,
+              tension: 0.15
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              x: { title: { display: true, text: 'CRF Value' } },
+              y: { title: { display: true, text: 'Size (MB)' }, beginAtZero: false }
+            }
+          }
+        });
+      }
+    }
+
+    const translations = {
+      en: {
+        title: "🎥 CRF File Size Estimator v1.3",
+        subtitle: "Now supports optional source video bitrate for more accurate estimates",
+        dropText: "Drop video file here to auto-fill file size",
+        sourceSize: "Size of source file (in GB):",
+        sourceBitrate: "Source video bitrate (kbit/s, optional):",
+        hintSourceSize: "Optional if video bitrate is provided.",
+        hintSourceBitrate: "Assumed to be video-only bitrate.",
+        runtimeMin: "Duration (in minutes):",
+        codec: "Codec:",
+        resolution: "Resolution:",
+        preset: "Preset:",
+        crf: "CRF value:",
+        includeAudio: "🎵 Include audio stream?",
+        audioConfig: "Audio configuration:",
+        audioNote: "Note:",
+        audioNoteText: "Audio bitrate is used to estimate audio size. You can still enter a source video bitrate above.",
+        estimate: "Estimate target size",
+        outputLabel: "Estimated target file size:",
+      },
+      de: {
+        title: "🎥 CRF-Dateigrößenschätzer v1.3",
+        subtitle: "Unterstützt jetzt optional die Quell-Video-Datenrate für genauere Schätzungen",
+        dropText: "Videodatei hierher ziehen zum automatischen Auslesen der Dateigröße",
+        sourceSize: "Größe der Quelldatei (in GB):",
+        sourceBitrate: "Quell-<em>Video</em>-Datenrate (kbit/s, optional):",
+        hintSourceSize: "Optional, falls die Video-Datenrate angegeben wird.",
+        hintSourceBitrate: "Es wird die reine <em>Video</em>-Datenrate angenommen.",
+        runtimeMin: "Laufzeit (in Minuten):",
+        codec: "Codec:",
+        resolution: "Auflösung:",
+        preset: "Preset:",
+        crf: "CRF-Wert:",
+        includeAudio: "🎵 Audiostream einrechnen?",
+        audioConfig: "Audiokonfiguration:",
+        audioNote: "Hinweis:",
+        audioNoteText: "Die Audio-Datenrate dient nur zur Audiogrößen-Schätzung. Oben kann zusätzlich eine Quell-Video-Datenrate eingetragen werden.",
+        estimate: "Zielgröße schätzen",
+        outputLabel: "Geschätzte Zieldateigröße:",
+      }
+    };
+
+    function setLanguage(lang) {
+      const t = translations[lang];
+      document.title = t.title;
+      $("title").innerText = t.title;
+      $("subtitle").innerHTML = t.subtitle;
+      $("dropZone").innerText = t.dropText;
+      $("labelSourceSize").innerText = t.sourceSize;
+      $("labelSourceBitrate").innerHTML = t.sourceBitrate;
+      $("hintSourceSize").innerText = t.hintSourceSize;
+      $("hintSourceBitrate").innerHTML = t.hintSourceBitrate;
+      $("labelRuntimeMin").innerText = t.runtimeMin;
+      $("labelCodec").innerText = t.codec;
+      $("labelResolution").innerText = t.resolution;
+      $("labelPreset").innerText = t.preset;
+      $("labelCRF").innerText = t.crf;
+      $("includeAudioLabelText").innerText = " " + t.includeAudio;
+      $("labelAudioConfig").innerText = t.audioConfig;
+      $("labelAudioNote").innerText = t.audioNote;
+      $("audioNoteText").innerHTML = t.audioNoteText;
+      $("estimateBtn").innerText = t.estimate;
+      $("outLabel").innerText = t.outputLabel;
+      // Reset output and chart visibility on language switch
+      $("output").style.display = "none";
+      $("chartContainer").style.display = "none";
+      $("output").innerHTML = "";
+    }
+
+    // Init
+    window.addEventListener("DOMContentLoaded", () => {
+      $("includeAudio").addEventListener("change", toggleAudio);
+      $("languageSwitcher").addEventListener("change", (e) => setLanguage(e.target.value));
+      $("estimateBtn").addEventListener("click", estimateSize);
+      $("resetBtn").addEventListener("click", () => {
+        $("sourceSize").value = "";
+        $("sourceVideoBitrate").value = "";
+        $("codec").value = "x265";
+        $("resolution").value = "1080p";
+        $("preset").value = "slow";
+        $("crf").value = 23;
+        $("includeAudio").checked = true;
+        $("audioConfig").value = "surround";
+        $("runtimeMin").value = 90;
+        $("output").style.display = "none";
+        $("chartContainer").style.display = "none";
+        $("dropZone").innerText = translations[document.getElementById("languageSwitcher").value].dropText;
+        $("dropZone").style.borderColor = "#888";
+        toggleAudio();
+      });
+
+      setLanguage("en");
+      toggleAudio();
+
+      const dropZone = $("dropZone");
+      dropZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = "#4caf50";
+      });
+      dropZone.addEventListener("dragleave", () => { dropZone.style.borderColor = "#888"; });
+      dropZone.addEventListener("drop", (e) => {
+        e.preventDefault(); dropZone.style.borderColor = "#888";
+        const file = e.dataTransfer.files[0];
+        if (file) {
+          const sizeGB = file.size / (1024 ** 3);
+          $("sourceSize").value = sizeGB.toFixed(2);
+          dropZone.innerText = `✅ Loaded: ${file.name} (${sizeGB.toFixed(2)} GB)`;
+        }
+      });
+    });
+  </script>
+</body>
+</html>
